@@ -7,7 +7,7 @@
 </script>
 
 <div id="export_tabs">
-  <a id="export_intro_tab" class="active" href="javascript:void(0);" onClick="Knitter.export_intro();">Export</a> 
+  <a id="export_intro_tab" class="active" href="javascript:void(0);" onClick="Knitter.export_intro();">Export</a>
   <a id="export_options_tab" href="javascript:void(0);" onClick="Knitter.export_options();">Options</a>
 </div>
 
@@ -30,7 +30,7 @@
   <div <% if @running %>style="display:none;"<% end %> id="run_export">Prove that you're a person, then click EXPORT to begin: <br />
 <% end %>
 
-<a id="active_export_button" class="export_button active" href="javascript:void(0);" onClick="new Ajax.Request('/map/export/<%= @map.name %>?type=normal&authenticity_token=<%= form_authenticity_token %>',{
+<a id="active_export_button" class="export_button active" href="javascript:void(0);" onClick="new Ajax.Request('/map/export/<%= @map.url %>?type=normal&authenticity_token=<%= form_authenticity_token %>',{
   parameters: {
 <% if Rails.env.production? && !logged_in? %>
     recaptcha_response_field: Recaptcha.get_response(),
@@ -40,10 +40,10 @@
   },
   onSuccess: function(response){ eval(response.responseText) },
   onFailure: function(response){
-    $('export_progress').insert('failed (ajax fail)... ') 
+    $('export_progress').insert('failed (ajax fail)... ')
     eval(response.responseText)
     $('active_export_button').show()
-    $('inactive_export_button').hide() 
+    $('inactive_export_button').hide()
   },
   });$('active_export_button').hide();$('inactive_export_button').show()">Export</a>
 </div>
@@ -81,7 +81,7 @@ img.export_status {
   text-decoration:none;
   font-family: lucida grande, helvetica, sans-serif;
   font-size: 14pt;
-  font-weight:bold;  
+  font-weight:bold;
 }
 .export_button.inactive {
   background:#ccc;
@@ -112,7 +112,7 @@ img.export_status {
   height:14px;
   width:6px;
   background:#666;
-  cursor:move; 
+  cursor:move;
   position: absolute;
   margin-top:-5px;
 }

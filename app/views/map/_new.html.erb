@@ -6,11 +6,11 @@
   <% unless logged_in? %>
     <div id="new-map-login">
     <% form_tag(session_path, {:class => "form"}) do -%>
- 
+
       <%= text_field_tag 'login', @login, {:placeholder => "username"} %>
       <br />
       <input type="hidden" name="return_to" value="<%= params[:return_to] %>" />
-     
+
       <%= submit_tag 'Log in', {:class => "btn btn-primary btn-large"} %>
       &nbsp; <%= check_box_tag 'remember_me', '1', @remember_me %><%= label_tag 'remember_me', 'Remember me', {:class => "checkbox inline", :style => "padding-left:5px;"} %>
     <% end %>
@@ -24,14 +24,16 @@
 
   <%= form_for :map, :html => {:id => "new_map", :class => "map"} do |f| %>
 
-    <%=raw errors_for @map, "Oops, we were unable to save your map." %>  
+    <%=raw errors_for @map, "Oops, we were unable to save your map." %>
 
-    <label for="name">Map title/URL (you won't be able to change this)</label>
+    <label for="name">Map title</label>
     <input class="text" type="text" name="name" value="<%= params[:name] %>" id="name">
+    <label for="name">Map URL (you won't be able to change this)</label>
+    <input class="text" type="text" name="url" value="<%= params[:url] %>" id="url">
     <label for="location">Place (to enter lat/lon, <a href="javascript:void(0);" onClick="$('#lat_lon').toggle()">click here</a>)</label>
     <input class="text" type="text" name="location" value="<%= params[:location] || 'Paris, France' %>" id="new_map_place">
     <div id="geocode_results">
-      
+
     </div>
     <style>
     .ui-autocomplete {
@@ -45,7 +47,7 @@
     <script>
       var geocoder = new google.maps.Geocoder();
 
-      $(document).ready(function() { 
+      $(document).ready(function() {
 
         $("#new_map_place").autocomplete({
           //This bit uses the geocoder to fetch address values
@@ -91,10 +93,10 @@
     <% if Rails.env.production? && !logged_in? %><p><%= recaptcha_tags :display => {:theme => "white"} %></p><% end %>
     <label for="description">Description (will be shown in an overlay on the map)</label>
     <textarea name="description" rows="8" cols="24"></textarea>
-    
+
     <!--<label for="password">Password (optional)</label><br />
     <input class="text" type="password" name="password" value="" id="password"><br />-->
-    
+
     <br />
     <label for="license">Allow others to use your map by dedicating it to the public domain or licensing it with an <a href="http://publiclaboratory.org/wiki/licenses">open source license</a></label>
     <select name="license">

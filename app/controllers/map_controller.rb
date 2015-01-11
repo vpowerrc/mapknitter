@@ -27,9 +27,9 @@ class MapController < ApplicationController
   end
 
   def view
-    @map = Map.find_by_name params[:id]
+    @map = Map.find_by_url params[:id]
     @export = @map.latest_export
-    if @map.password == "" || Password::check(params[:password],@map.password) || params[:password] == APP_CONFIG["password"] 
+    if @map.password == "" || Password::check(params[:password],@map.password) || params[:password] == APP_CONFIG["password"]
       @images = @map.flush_unplaced_warpables
     else
       flash[:error] = "That password is incorrect." if params[:password] != nil
@@ -39,7 +39,7 @@ class MapController < ApplicationController
 
   def archive
     if APP_CONFIG["password"] == params[:password]
-      @map = Map.find_by_name(params[:id])
+      @map = Map.find_by_url(params[:id])
       @map.archived = true
       if @map.save
         flash[:notice] = "Archived map."
@@ -62,7 +62,7 @@ class MapController < ApplicationController
     else
       flash[:error] = "Failed to archive map. Wrong password."
     end
-    redirect_to '/map/view/'+@map.name
+    redirect_to '/map/view/'+@map.url
   end
 
   def delete
@@ -83,7 +83,7 @@ class MapController < ApplicationController
 
   # pt fm ac wpw
   def images
-    @map = Map.find_by_name params[:id]
+    @map = Map.find_by_url params[:id]
     @images = Warpable.find_all_by_map_id(@map.id,:conditions => ['parent_id IS NULL AND deleted = "false"'])
     @image_locations = []
     if @images
@@ -114,16 +114,17 @@ class MapController < ApplicationController
   end
 
   def update_map
-    @map = Map.find(params[:map][:id])
+    @map = Map.find_by_url params[:id]
+    @map.name = params[:map][:name]
+    @map.description = params[:map][:description]
+    @map.location = params[:map][:location]
     if @map.user_id != 0 && logged_in?# if it's not anonymous
       #if logged_in? && current_user.role == "admin"
       if params[:latitude] == '' && params[:longitude] == ''
         puts 'geocoding'
         begin
           if @map.password == "" || Password::check(params[:password],@map.password) || params[:password] == APP_CONFIG["password"]
-          @map.description = params[:map][:description]
-          @map.location = params[:map][:location]
-            location = GeoKit::GoogleV3Geocoder.geocode(params[:map][:location])
+            location = GeoKit::GoogleV3Geocoder.geocode(@map.location)
             @map.password = params[:map][:password] if params[:password] == APP_CONFIG["password"]
             @map.lat = location.lat
             @map.lon = location.lng
@@ -140,7 +141,7 @@ class MapController < ApplicationController
             else
               flash[:error] = "Location not recognized"
             end
-            redirect_to '/map/view/'+@map.name
+            redirect_to '/map/view/'+@map.url
           else
             flash[:error] = "That password is incorrect." if params[:password] != nil
             redirect_to "/map/login/"+params[:id]+"?to=/map/view/"+params[:id]
@@ -153,19 +154,17 @@ class MapController < ApplicationController
         puts 'nogeocoding'
         @map.lat = params[:latitude]
         @map.lon = params[:longitude]
-        @map.description = params[:map][:description]
-        @map.location = params[:map][:location]
         if @map.save
           flash[:notice] = "Map updated."
         else
           flash[:error] = "The map could not be updated. Try a more specific location or contact web@publiclab.org if you continue to have trouble."
         end
-        redirect_to '/map/view/'+@map.name
-      end 
+        redirect_to '/map/view/'+@map.url
+      end
     else
       flash[:error] = "This map cannot be edited by anonymous users. Please log in to edit it."
-      redirect_to '/map/view/'+@map.name
-    end 
+      redirect_to '/map/view/'+@map.url
+    end
   end
 
   def create
@@ -173,7 +172,7 @@ class MapController < ApplicationController
       @map = Map.new
       @map.errors.add :location, 'You must name a location. You may also enter a latitude and longitude instead.'
       index
-      render :action=>"index", :controller=>"map"
+      redirect_to :action=>"index", :controller=>"map"
     else
       if params[:latitude] == '' && params[:longitude] == ''
         location = ''
@@ -184,6 +183,7 @@ class MapController < ApplicationController
           @map.lat = location.lat
           @map.lon = location.lng
           @map.name = params[:name]
+          @map.url = params[:url]
           @map.description = params[:description]
           @map.author = params[:author]
           @map.email = params[:email]
@@ -193,6 +193,7 @@ class MapController < ApplicationController
         rescue
           @map = Map.new
           @map.name = params[:name]
+          @map.url = params[:url]
           @map.description = params[:description]
           @map.author = params[:author]
           @map.license = params[:license]
@@ -205,6 +206,7 @@ class MapController < ApplicationController
         @map.lat = params[:latitude]
         @map.lon = params[:longitude]
         @map.name = params[:name]
+        @map.url = params[:url]
         @map.description = params[:description]
         @map.email = params[:email]
         @map.license = params[:license]
@@ -216,20 +218,20 @@ class MapController < ApplicationController
       @map.author = current_user.login if logged_in?
       @map.email = current_user.email if logged_in?
       if Rails.env.development? && @map.save || (verify_recaptcha(:model => @map, :message => "ReCAPTCHA thinks you're not a human!") || logged_in?) && @map.save
-        redirect_to :action => 'show', :id => @map.name
+        redirect_to :action => 'show', :id => @map.url
       else
-  index
-        render :action=>"index", :controller=>"map"
+        index
+        redirect_to :action=>"index", :controller=>"map"
       end
     end
   end
- 
+
   def login
   end
 
-  # http://www.zacharyfox.com/blog/ruby-on-rails/password-hashing 
+  # http://www.zacharyfox.com/blog/ruby-on-rails/password-hashing
   def show
-    @map = Map.find_by_name(params[:id],:order => 'version DESC')
+    @map = Map.find_by_url(params[:id],:order => 'version DESC')
     if @map.password != "" && !Password::check(params[:password],@map.password) && params[:password] != APP_CONFIG["password"]
       flash[:error] = "That password is incorrect." if params[:password] != nil
       redirect_to "/map/login/"+params[:id]+"?to=/maps/"+params[:id]
@@ -257,8 +259,8 @@ class MapController < ApplicationController
     params[:id] ||= params[:q]
     @maps = Map.where('archived = false AND (name LIKE ? OR location LIKE ? OR description LIKE ?)',"%"+params[:id]+"%", "%"+params[:id]+"%", "%"+params[:id]+"%").paginate(:page => params[:page], :per_page => 24)
   end
- 
-  # Regularly-called "autosave" of warpable image nodes. 
+
+  # Regularly-called "autosave" of warpable image nodes.
   # Maybe rename "autosave", move into warper controller?
   def update
     @map = Map.find(params[:id])
@@ -268,13 +270,13 @@ class MapController < ApplicationController
     @map.vectors = false if params[:vectors] == 'false'
     if params[:tiles] && params[:tiles] != 'false'
       @map.tiles = params[:tiles]
-      if params[:tiles] == "TMS" || params[:tiles] == "WMS" 
-        @map.tile_url = params[:tile_url] 
-      else # clear layer information 
+      if params[:tiles] == "TMS" || params[:tiles] == "WMS"
+        @map.tile_url = params[:tile_url]
+      else # clear layer information
         @map.tile_url = ""
         @map.tile_layer = ""
       end
-      @map.tile_layer = params[:tile_layer] if params[:tiles] == "WMS" 
+      @map.tile_layer = params[:tile_layer] if params[:tiles] == "WMS"
     end
     @map.zoom = params[:zoom]
     if @map.save
@@ -292,9 +294,9 @@ class MapController < ApplicationController
       render :text => "No results"
     end
   end
- 
+
   def output
-    @map = Map.find params[:id] 
+    @map = Map.find params[:id]
     if @export = @map.latest_export
       @running = (@export.status != 'complete' && @export.status != 'none' && @export.status != 'failed')
     else
@@ -315,7 +317,7 @@ class MapController < ApplicationController
 
   def export
     export_type = "normal"
-    map = Map.find_by_name params[:id]
+    map = Map.find_by_url params[:id]
     if Rails.env.development? || (verify_recaptcha(:model => map, :message => "ReCAPTCHA thinks you're not a human!") || logged_in?)
     begin
       unless export = map.get_export(export_type) # searches only "normal" exports
@@ -327,8 +329,8 @@ class MapController < ApplicationController
       export.geotiff = false
       export.zip = false
       export.jpg = false
-      export.save       
-  
+      export.save
+
       directory = Rails.root.to_s+"/public/warps/"+map.name+"/"
       stdin, stdout, stderr = Open3.popen3('rm -r '+directory.to_s)
       puts stdout.readlines
@@ -336,24 +338,24 @@ class MapController < ApplicationController
       stdin, stdout, stderr = Open3.popen3('rm -r '+Rails.root.to_s+'/public/tms/'+map.name)
       puts stdout.readlines
       puts stderr.readlines
-    
+
       puts '> averaging scales'
       pxperm = 100/(params[:resolution]).to_f || map.average_scale # pixels per meter
-    
+
       puts '> distorting warpables'
       origin = map.distort_warpables(pxperm)
-      warpable_coords = origin.pop  
-  
+      warpable_coords = origin.pop
+
       export = map.get_export(export_type)
       export.status = 'compositing'
       export.save
-    
+
       puts '> generating composite tiff'
       composite_location = map.generate_composite_tiff(warpable_coords,origin)
-    
+
       info = (`identify -quiet -format '%b,%w,%h' #{composite_location}`).split(',')
       puts info
-    
+
       export = map.get_export(export_type)
       if info[0] != ''
         export.geotiff = true
@@ -364,25 +366,25 @@ class MapController < ApplicationController
         export.status = 'tiling'
         export.save
       end
-    
+
       puts '> generating tiles'
       export = map.get_export(export_type)
       export.tms = true if map.generate_tiles
       export.status = 'zipping tiles'
       export.save
-  
+
       puts '> zipping tiles'
       export = map.get_export(export_type)
       export.zip = true if map.zip_tiles
       export.status = 'creating jpg'
       export.save
-  
+
       puts '> generating jpg'
       export = map.get_export(export_type)
       export.jpg = true if map.generate_jpg("normal")
       export.status = 'complete'
       export.save
-    
+
     rescue SystemCallError
       #  $stderr.print "failed: " + $!
       export = map.get_export(export_type)
@@ -404,7 +406,7 @@ class MapController < ApplicationController
       end
       render :text => emails.uniq.join("#")
     end
-  end 
+  end
 
   def exports
     render :text => ActiveSupport::JSON.encode(Export.exporting) if params[:password] == APP_CONFIG["password"]

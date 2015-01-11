@@ -51,8 +51,8 @@ var map
             <!--<a id="tool_trace" name='Trace a shape' class='last' href="javascript:void(0);" onClick="Tool.change('Pen');Tool.Pen.new_shape()"><img src="/images/tools/stock-tool-pencil-22.png" /></a>-->
     </div>
     <div class="toolbar">
-      <a name='View map' class='first silk' href="/map/view/<%= @map.name %>" target="_blank"><img src="/images/silk-grey/map.png" /></a>
-      <a name='View all images' class='silk' href="/map/images/<%= @map.name %>" onClick="Modalbox.show('/map/images/<%= @map.name %>', {title: 'Click an image to see it on the map', width: 600, height: 450});return false;"><img src="/images/silk-grey/photos.png" /></a>
+      <a name='View map' class='first silk' href="/map/view/<%= @map.url %>" target="_blank"><img src="/images/silk-grey/map.png" /></a>
+      <a name='View all images' class='silk' href="/map/images/<%= @map.url %>" onClick="Modalbox.show('/map/images/<%= @map.url %>', {title: 'Click an image to see it on the map', width: 600, height: 450});return false;"><img src="/images/silk-grey/photos.png" /></a>
       <a name='Geolocate your current position' class='silk' id="geolocate"  href="javascript:void(0);" onClick="if (User.geolocate() && User.lat != 0) {Cartagen.go_to(User.lat,User.lon,2)}"><img src="/images/silk-grey/house.png" /></a>
       <script type="text/javascript" charset="utf-8">if (!User.geolocate) $('geolocate').hide()</script>
       <a id="tagreport" name='Show all tags' class='silk' <% unless @map.vectors %>style="display:none;"<% end %> href="javascript:void(0);" onClick="Cartagen.tags('alert');"><img src="/images/silk-grey/tag_blue.png" /></a>

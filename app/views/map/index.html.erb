@@ -3,9 +3,9 @@
   <div class="row">
 
     <div class="span4" id="sidebar">
-  
+
       <p><a href="http://store.publiclab.org/products/balloon-mapping-kit"><img src="/images/balloon-kit.jpg" /></a></p>
-  
+
       <%= render :partial => "map/search" %>
       <%= render :partial => "map/new" %>
 
@@ -42,14 +42,14 @@
 
       </div>
     </div>
-  
+
     <div class="span8">
       <iframe style="background:#ddd;margin-bottom:10px;" width="80%" height="350px" src="http://www.youtube.com/embed/NOikqxIIFBc" frameborder="0" allowfullscreen></iframe>
 
       <h2>MapKnitter <small>by <a href="http://publiclab.org">Public Lab</a> | Turn images into maps</small></h2>
 
       <hr />
-  
+
       <h2>Recent Maps <small>(<a href="/feeds/all">RSS</a>)</small></h2>
       <%= render :partial => 'map/list' %>
     </div>
@@ -57,3 +57,16 @@
   </div>
 
 </div>
+
+<script>
+  $(document).ready(function() {
+    $("#name,#url").keyup(function() {
+      console.log(string_to_slug($(this).val()))
+      $("#url").val(string_to_slug($(this).val()))
+    });
+  });
+
+  function string_to_slug(text){
+    return text.toLowerCase().replace(/[\W_]/g,'-')
+  }
+</script>

@@ -1,12 +1,12 @@
 <div id="main">
-  <h2>Editing "<%= @map.name %>"</h2>  
+  <h2>Editing "<%= @map.name %>"</h2>
   <p><small>by <a href="/author/<%= @map.author %>"><%= @map.author %></a>
   <% if admin && @map.email != '' %><<a href="mailto:<%= @map.email %>"><%= @map.email %></a>>,</a><% end %></small></p>
 
-  <h3><a style="text-decoration:underline" href="/maps/<%= @map.name %>">View map &raquo;</a></h3>
+  <h3><a style="text-decoration:underline" href="/maps/<%= @map.url %>">View map &raquo;</a></h3>
 
 <% if @images.length > 0
-  hist = @map.images_histogram 
+  hist = @map.images_histogram
   grouphist = @map.grouped_images_histogram((hist.length/15).to_i+1)
 %>
 
@@ -32,23 +32,23 @@
     <% @images.each do |image| %>
     <p>
       <a href="<%= image.image.url %>"><img src="<%= image.image.url(:thumb) %>" /></a>
-       <%= image.cm_per_pixel.to_s[0..3] %> cm/px, 
+       <%= image.cm_per_pixel.to_s[0..3] %> cm/px,
        <%= time_ago_in_words(image.created_at) %> ago
     </p>
     <% end %>
   </div>
 
 
-  
+
 </div>
 
 <div id="sidebar">
 <div class='box'>
   <h3>Edit map details:</h3>
-  <form class='map' id="new_map" action="/map/update_map/<%= @map.name %>" method="get" accept-charset="utf-8">
-  
+  <form class='map' id="new_map" action="/map/update_map/<%= @map.url %>" method="get" accept-charset="utf-8">
+
     <input type='hidden' name='map[id]' value="<%= @map.id %>"/>
-    
+
     <label for="location">Place</label><br />
     <input class="text" type="text" name="map[location]" value="<%= @map.location %>" id="new_map_place"><br />
     <% if admin %>
@@ -56,7 +56,7 @@
     <input class="text" type="password" name="map[password]" value="<%= "*****" if @map.password != "" %>" id="new_map_password"><br />
     <% end %>
     <div id="geocode_results">
-      
+
     </div>
     <script>
       /* JQuery search as you type
@@ -82,14 +82,14 @@
         }
             });
             $("#new_map_place").result(function(event, data, formatted) {
-        if (data == 'No results'){  
-              
+        if (data == 'No results'){
+
         } else {
                 $("#new_map_place").attr('value',data);
         }
       })
             });
-      
+
 
     </script>
     <label for="author">Author</label><br />
@@ -97,10 +97,10 @@
     <p><%= recaptcha_tags :display => {:theme => "white"} %></p>
     <label for="description">Description</label><br />
     <textarea name="map[description]" rows="8" cols="24"><%= @map.description %></textarea><br />
-    
+
     <!--<label for="password">Password (optional)</label><br />
     <input class="text" type="password" name="password" value="" id="password"><br />-->
-      
+
     <% if @map.password != "" %>
     <label for="password">Password (you must enter the password to save)</label><br />
     <input class="text" type="password" name="password" id="password"><br />

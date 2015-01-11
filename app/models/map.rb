@@ -1,13 +1,13 @@
 require 'open3'
 class Map < ActiveRecord::Base
-  before_validation :update_name
-  validates_presence_of :name,:author,:lat,:lon
-  validates_uniqueness_of :name
+  before_validation :update_url
+  validates_presence_of :url,:name,:author,:lat,:lon
+  validates_uniqueness_of :url
   validates_presence_of :location, :message => ' cannot be found. Try entering a latitude and longitude if this problem persists.'
-  validates_format_of   :name,
-                        :with => /^[\w-]*$/,  
+  validates_format_of   :url,
+                        :with => /^[\w-]*$/,
                         :message => " must not include spaces and must be alphanumeric, as it'll be used in the URL of your map, like: http://cartagen.org/maps/your-map-name. You may use dashes and underscores.",
-                        :on => :create                  
+                        :on => :create
 #  validates_format_of :tile_url, :with => /^(http|https):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/ix
 
   has_many :warpables
@@ -16,7 +16,7 @@ class Map < ActiveRecord::Base
 
   def validate
     self.name != 'untitled'
-    self.name = self.name.gsub(' ','-').gsub('_','-').downcase
+    self.url = self.url.gsub(' ','-').gsub('_','-').downcase
     self.lat >= -90 && self.lat <= 90 && self.lon >= -180 && self.lat <= 180
   end
 
@@ -25,8 +25,8 @@ class Map < ActiveRecord::Base
     self.password = Password::update(self.password) if self.password != ""
   end
 
-  def update_name
-    self.name = self.name.gsub(/\W/, '-').downcase
+  def update_url
+    self.url = self.url.gsub(/\W/, '-').downcase
   end
 
   def private
@@ -55,7 +55,7 @@ class Map < ActiveRecord::Base
   end
 
   def warpables
-    Warpable.find :all, :conditions => {:map_id => self.id, :deleted => false} 
+    Warpable.find :all, :conditions => {:map_id => self.id, :deleted => false}
   end
 
   def nodes
@@ -95,7 +95,7 @@ class Map < ActiveRecord::Base
       end
     end
     warpables
-  end 
+  end
 
   def average_scale
     # determine optimal zoom level
@@ -136,7 +136,7 @@ class Map < ActiveRecord::Base
       self.warpables.each do |warpable|
         unless warpable.width.nil?
           count += 1
-          res = warpable.cm_per_pixel 
+          res = warpable.cm_per_pixel
           scales << res unless res == nil
         end
       end
@@ -153,7 +153,7 @@ class Map < ActiveRecord::Base
     hist = []
     self.warpables.each do |warpable|
       res = warpable.cm_per_pixel.to_i
-      hist[res] = 0 if hist[res] == nil 
+      hist[res] = 0 if hist[res] == nil
       hist[res] += 1
     end
     (0..hist.length-1).each do |bin|
@@ -169,7 +169,7 @@ class Map < ActiveRecord::Base
       res = warpable.cm_per_pixel
       if res != nil
         res = (warpable.cm_per_pixel/(0.001+binsize)).to_i
-        hist[res] = 0 if hist[res] == nil 
+        hist[res] = 0 if hist[res] == nil
         hist[res] += 1
       end
     end
@@ -234,7 +234,7 @@ class Map < ActiveRecord::Base
     end
     composite_location
   end
-  
+
   # generates a tileset at Rails.root.to_s/public/tms/<map_name>/
   def generate_tiles
     google_api_key = APP_CONFIG["google_maps_api_key"]
@@ -249,17 +249,17 @@ class Map < ActiveRecord::Base
     rmzip = 'cd public/tms/ && rm '+self.name+'.zip && cd ../../'
     system(Gdal.ulimit+rmzip)
     zip = 'cd public/tms/ && zip -rq '+self.name+'.zip '+self.name+'/ && cd ../../'
-    #    puts zip 
+    #    puts zip
     #    puts system('which gdal2tiles.py')
     system(Gdal.ulimit+zip)
   end
- 
+
   def generate_jpg(export_type)
     imageMagick = 'convert -background white -flatten '+Rails.root.to_s+'/public/warps/'+self.name+'/'+self.name+'-geo.tif '+Rails.root.to_s+'/public/warps/'+self.name+'/'+self.name+'.jpg' if export_type == "normal"
     imageMagick = 'convert -background white -flatten '+Rails.root.to_s+'/public/warps/'+self.name+'/'+self.name+'-'+export_type+'.tif '+Rails.root.to_s+'/public/warps/'+self.name+'/'+self.name+'-nrg.jpg' if export_type == "nrg"
     system(Gdal.ulimit+imageMagick)
   end
- 
+
   def after_create
     puts 'saving Map'
     if last = Map.find_by_name(self.name,:order => "version DESC")
@@ -269,7 +269,7 @@ class Map < ActiveRecord::Base
 
   def license_link
     if self.license == "cc-by"
-     "<a href='http://creativecommons.org/licenses/by/3.0/'>Creative Commons Attribution 3.0 Unported License</a>" 
+     "<a href='http://creativecommons.org/licenses/by/3.0/'>Creative Commons Attribution 3.0 Unported License</a>"
     elsif self.license == "publicdomain"
      "<a href='http://creativecommons.org/publicdomain/zero/1.0/'>Public Domain</a>"
     end

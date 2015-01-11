@@ -43,7 +43,7 @@
   <% end %>
 
   <div>
-    <a class="btn btn-primary" href="/maps/<%= @map.name %>">Edit this map</a>
+    <a class="btn btn-primary" href="/maps/<%= @map.url %>">Edit this map</a>
     <% if @map.license == "publicdomain" || @map.license == "cc-by" %>
       <a class="btn" href="http://openstreetmap.us/iD/release/#background=custom:http://mapknitter.org/tms/<%= @map.name %>/alt/{z}/{x}/{y}.png&map=16.56/<%= @map.lon %>/<%= @map.lat %>">Contribute to OpenStreetMap in iD</a>
       <a class="btn" href="http://www.openstreetmap.org/edit?lon=<%= @map.lon %>&lat=<%=@map.lat %>&zoom=17&tileurl=http://mapknitter.org/tms/<%= @map.name %>/alt/$z/$x/$y.png?origin=nw">or in Potlatch</a>
@@ -51,7 +51,7 @@
   </div>
   <hr />
   <p>
-    <a class="btn" href="/maps/<%= @map.name %>?leaflet=true">Edit with new beta interface</a>
+    <a class="btn" href="/maps/<%= @map.url %>?leaflet=true">Edit with new beta interface</a>
   </p>
 
   <% if @images.length > 0 %><h2>Images in this map:</h2><% end %>
@@ -93,8 +93,8 @@
     <% @map.nearby_maps(0.1)[0..3].each do |map| %>
       <% if !map.archived && !map.private && map.warpables.length > 0 %>
       <div class="map <%= 'odd' if odd %>">
-        <a href="/map/view/<%= map.name %>"><img src="<%= map.warpables.first.image.url(:small) %>" /></a>
-        <h3><a href ="/map/view/<%= map.name %>"><%= map.name.capitalize %></a> <small>by <a href="/author/<%= map.author %>"><%= map.author %></a></small> </h3>
+        <a href="/map/view/<%= map.url %>"><img src="<%= map.warpables.first.image.url(:small) %>" /></a>
+        <h3><a href ="/map/view/<%= map.url %>"><%= map.name.capitalize %></a> <small>by <a href="/author/<%= map.author %>"><%= map.author %></a></small> </h3>
         <p><small><%= map.location %></small></p>
         <p class="description"><small>
           <%= truncate(map.description,:length =>200) %>
@@ -102,15 +102,15 @@
         </small></p>
         <p class="meta"><small>
           <% if map.archived %><i>Archived</i> | <% end %>
-          <a href="/map/view/<%= map.name %>">View</a> |
-          <a href="/map/show/<%= map.name %>">Edit</a> |
+          <a href="/map/view/<%= map.url %>">View</a> |
+          <a href="/map/show/<%= map.url %>">Edit</a> |
           Updated <%= map.updated_at.to_s(:short) %> |
           <%= map.warpables.length %> images
         </small></p>
         <p class="formats">
         <% unless map.latest_export.nil? %>
         <% if map.latest_export.geotiff %>
-          <a class="geotiff" href="/export/geotiff/<%= map.name %>.tif">GeoTIFF</a>
+          <a class="geotiff" href="/export/geotiff/<%= map.url %>.tif">GeoTIFF</a>
           <br />
           <span class="geotiff_stats"><%= map.latest_export.cm_per_pixel %> cm/px, <%= number_to_human_size(map.latest_export.size) %>, <%= map.latest_export.width %> x <%= map.latest_export.height %> px</span>
         <% end %><br />
@@ -119,7 +119,7 @@
           <a class="tms" target="_blank" href="/tms/<%= map.name %>">TMS</a> <a class="tms-alt" href="/tms/<%= map.name %>/alt">OSM-style</a>
         <% end %>
         <% if map.latest_export.jpg %>
-          <a class="jpg" href="/export/jpg/<%= map.name %>.jpg">JPG</a>
+          <a class="jpg" href="/export/jpg/<%= map.url %>.jpg">JPG</a>
         <% end %>
         <% end %>
         </p>
@@ -136,7 +136,7 @@
   <% (@map.annotations(0.1)+@map.polygons(0.1)).each do |note| %>
   <li class="">
     <a href="/profile/<%= note.author %>"><%= note.author %></a> said:</b>
-    <%= note.description %> (<a href="/annotation/delete/<%= note.id %>?back=/map/view/<%= @map.name %>">x</a>)
+    <%= note.description %> (<a href="/annotation/delete/<%= note.id %>?back=/map/view/<%= @map.url %>">x</a>)
   </li>
   <% end %>
   </ul>
@@ -203,11 +203,14 @@
 
 <div class='well'>
   <h3>Edit map details<a class="pull-right btn" href="javascript:void(0);" onClick="$('#new_map').toggle()">Expand <i class="caret"></i></a></h3>
-  <form style="display:none;" class='map' id="new_map" action="/map/update_map/<%= @map.name %>" method="get" accept-charset="utf-8">
+  <form style="display:none;" class='map' id="new_map" action="/map/update_map/<%= @map.url %>" method="get" accept-charset="utf-8">
 
     <input type='hidden' name='map[id]' value="<%= @map.id %>"/>
 
     <% if logged_in? && (@map.author == current_user.login || current_user.role == "admin") %>
+
+    <label for="name">Map title</label>
+    <input class="text" type="text" name="map[name]" value="<%= @map.name %>" id="name">
     <label for="password">Password (optional -- to keep your map private)</label>
     <input class="text" type="password" name="map[password]" value="<%= "*****" if @map.password != "" %>" id="new_map_password">
     <% end %>

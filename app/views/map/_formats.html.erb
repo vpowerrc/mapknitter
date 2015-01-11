@@ -3,13 +3,13 @@
 <% unless @export.nil? %>
 
 <% if @export.jpg %>
-  <a class="btn btn-mini btn-danger" href="/export/jpg/<%= @map.name %>.jpg">JPG</a>
+  <a class="btn btn-mini btn-danger" href="/export/jpg/<%= @map.url %>.jpg">JPG</a>
 <% end %>
 <% if @export.geotiff %>
 <% if @export.export_type == "nrg" %>
-  <a class="btn btn-mini btn-success" href="/export/geotiff/<%= @map.name %>-nrg.tif">GeoTIFF</a>
+  <a class="btn btn-mini btn-success" href="/export/geotiff/<%= @map.url %>-nrg.tif">GeoTIFF</a>
 <% else %>
-  <a class="btn btn-mini btn-success" href="/export/geotiff/<%= @map.name %>.tif">GeoTIFF</a>
+  <a class="btn btn-mini btn-success" href="/export/geotiff/<%= @map.url %>.tif">GeoTIFF</a>
 <% end %>
 <% end %>
 
