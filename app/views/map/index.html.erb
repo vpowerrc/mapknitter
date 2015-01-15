@@ -61,12 +61,11 @@
 <script>
   $(document).ready(function() {
     $("#name,#url").keyup(function() {
-      console.log(string_to_slug($(this).val()))
       $("#url").val(string_to_slug($(this).val()))
     });
   });
 
   function string_to_slug(text){
-    return text.toLowerCase().replace(/[\W_]/g,'-')
+    return text.toLowerCase().replace(/[^\w ]+/g,'').replace(/ +/g,'-')
   }
 </script>
