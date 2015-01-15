@@ -1,5 +1,8 @@
 require 'open3'
 class Map < ActiveRecord::Base
+  extend FriendlyId
+  friendly_id :name, :use => [:slugged, :static], :slug_column => :url
+
   before_validation :update_url
   validates_presence_of :url,:name,:author,:lat,:lon
   validates_uniqueness_of :url

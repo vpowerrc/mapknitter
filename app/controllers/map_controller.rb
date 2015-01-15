@@ -27,7 +27,7 @@ class MapController < ApplicationController
   end
 
   def view
-    @map = Map.find_by_url params[:id]
+    @map = Map.find params[:id]
     @export = @map.latest_export
     if @map.password == "" || Password::check(params[:password],@map.password) || params[:password] == APP_CONFIG["password"]
       @images = @map.flush_unplaced_warpables
@@ -39,7 +39,7 @@ class MapController < ApplicationController
 
   def archive
     if APP_CONFIG["password"] == params[:password]
-      @map = Map.find_by_url(params[:id])
+      @map = Map.find(params[:id])
       @map.archived = true
       if @map.save
         flash[:notice] = "Archived map."
@@ -83,7 +83,7 @@ class MapController < ApplicationController
 
   # pt fm ac wpw
   def images
-    @map = Map.find_by_url params[:id]
+    @map = Map.find params[:id]
     @images = Warpable.find_all_by_map_id(@map.id,:conditions => ['parent_id IS NULL AND deleted = "false"'])
     @image_locations = []
     if @images
@@ -114,7 +114,7 @@ class MapController < ApplicationController
   end
 
   def update_map
-    @map = Map.find_by_url params[:id]
+    @map = Map.find params[:id]
     @map.name = params[:map][:name]
     @map.description = params[:map][:description]
     @map.location = params[:map][:location]
@@ -231,7 +231,7 @@ class MapController < ApplicationController
 
   # http://www.zacharyfox.com/blog/ruby-on-rails/password-hashing
   def show
-    @map = Map.find_by_url(params[:id],:order => 'version DESC')
+    @map = Map.find(params[:id],:order => 'version DESC')
     if @map.password != "" && !Password::check(params[:password],@map.password) && params[:password] != APP_CONFIG["password"]
       flash[:error] = "That password is incorrect." if params[:password] != nil
       redirect_to "/map/login/"+params[:id]+"?to=/maps/"+params[:id]
@@ -317,7 +317,7 @@ class MapController < ApplicationController
 
   def export
     export_type = "normal"
-    map = Map.find_by_url params[:id]
+    map = Map.find params[:id]
     if Rails.env.development? || (verify_recaptcha(:model => map, :message => "ReCAPTCHA thinks you're not a human!") || logged_in?)
     begin
       unless export = map.get_export(export_type) # searches only "normal" exports
