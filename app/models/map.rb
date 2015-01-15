@@ -3,7 +3,6 @@ class Map < ActiveRecord::Base
   extend FriendlyId
   friendly_id :name, :use => [:slugged, :static], :slug_column => :url
 
-  before_validation :update_url
   validates_presence_of :url,:name,:author,:lat,:lon
   validates_uniqueness_of :url
   validates_presence_of :location, :message => ' cannot be found. Try entering a latitude and longitude if this problem persists.'
@@ -19,17 +18,12 @@ class Map < ActiveRecord::Base
 
   def validate
     self.name != 'untitled'
-    self.url = self.url.gsub(' ','-').gsub('_','-').downcase
     self.lat >= -90 && self.lat <= 90 && self.lon >= -180 && self.lat <= 180
   end
 
   # Hash the password before saving the record
   def before_create
     self.password = Password::update(self.password) if self.password != ""
-  end
-
-  def update_url
-    self.url = self.url.gsub(/\W/, '-').downcase
   end
 
   def private
